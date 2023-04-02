@@ -78,3 +78,12 @@ MyInterlock.set('2');
 -- Reset the interlock to its default value
 MyInterlock.reset();
 ```
+
+## clock
+
+Turns a given control into a clock display with given format.
+
+Example:
+```lua
+clock(Controls.MyClock, '%H:%I %p');
+```

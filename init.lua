@@ -63,3 +63,15 @@ function interlock(pattern, options)
   });
 
 end; 
+
+--[[ Clock object creator]]--
+function clock(ctl, format)
+  if(not _G.ClockTimer) then
+    _G.ClockTimer = {};
+  end
+  _G.ClockTimer[ctl] = Timer.New();
+  _G.ClockTimer[ctl].EventHandler = function()
+    ctl.String = os.time(format);
+  end;
+  _G.ClockTimer:Start(0.2);
+end;
