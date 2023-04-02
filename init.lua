@@ -73,5 +73,5 @@ function clock(ctl, format)
   _G.ClockTimer[ctl].EventHandler = function()
     ctl.String = os.time(format);
   end;
-  _G.ClockTimer:Start(0.2);
+  _G.ClockTimer[ctl]:Start(0.2);
 end;
