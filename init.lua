@@ -66,12 +66,72 @@ end;
 
 --[[ Clock object creator]]--
 function clock(ctl, format)
-  if(not _G.ClockTimer) then
-    _G.ClockTimer = {};
+  if(not _G._locimation_lib_data.ClockTimer) then
+    _G._locimation_lib_data.ClockTimer = {};
   end
-  _G.ClockTimer[ctl] = Timer.New();
-  _G.ClockTimer[ctl].EventHandler = function()
+  _G._locimation_lib_data.ClockTimer[ctl] = Timer.New();
+  _G._locimation_lib_data.ClockTimer[ctl].EventHandler = function()
     ctl.String = os.date(format);
   end;
-  _G.ClockTimer[ctl]:Start(0.2);
+  _G._locimation_lib_data.ClockTimer[ctl]:Start(0.2);
 end;
+
+--[[ Press + Hold object creator ]]
+function presshold(ctl, options)
+  options = options or {};
+  if(not options.threshold) then options.threshold = 2; end;
+  if(options.Hold and type(options.Hold) ~= 'function') then error('PressHold.Hold expects a function.'); end;
+  if(options.Press and type(options.Press) ~= 'function') then error('PressHold.Press expects a function.'); end;
+
+  -- Initialise globals
+  if(not _G._locimation_lib_data.PressHold) then
+
+    _G._locimation_lib_data.PressHold = {
+      Timer = Timer.New(),
+      State = {}
+    }
+
+    _G._locimation_lib_data.PressHold.Timer.EventHandler = function()
+      local now = Timer.Now(); 
+      for ctl,time in pairs(_G._locimation_lib_data.PressHold.State) do
+        if(time and now > time) then
+          ctl.Boolean = false;
+          if(options.Hold) then options.Hold(ctl); end;
+          _G._locimation_lib_data.PressHold.State[ctl] = nil;
+        end;
+      end;
+    end;
+
+    _G._locimation_lib_data.PressHold.Timer:Start(0.2);
+
+  end
+
+  ctl.EventHandler = function()
+    if(ctl.Boolean) then
+      _G._locimation_lib_data.PressHold.State[ctl] = Timer.Now() + options.threshold;
+    else
+      if(options.Press) then options.Press(ctl); end;
+      _G._locimation_lib_data.PressHold.State[ctl] = nil; 
+    end;
+  end;
+
+  return setmetatable({},{
+    __newindex = function(_,k,v)
+      if(k == 'Threshold') then
+        if(type(v) ~= 'number') then error('PressHold.Threshold expects a number.'); end;
+        options.threshold = v;
+      elseif(k == 'Press') then
+        if(type(v) ~= 'function') then error('PressHold.Hold expects a function.'); end;
+        options.Hold = v;
+      elseif(k == 'Hold') then
+        if(type(v) ~= 'function') then error('PressHold.Press expects a function.'); end;
+        options.Press = v;
+      else
+        error('Property "' .. k .. '" does not exist on PressHold.');
+      end
+    end
+  });
+
+end;
+
+_G._locimation_lib_data = {};

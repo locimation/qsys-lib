@@ -58,7 +58,7 @@ with optional configuration:
 MyInterlock = interlock('^Control%-(%d+)$', {
   default = '2',
   callback = function(value) print(value) end,
-  nostartup = true
+  no_startup = true
 })
 ```
 
@@ -86,4 +86,26 @@ Turns a given control into a clock display with given format.
 Example:
 ```lua
 clock(Controls.MyClock, '%H:%I %p');
+```
+
+## presshold
+
+Creates a "Press & Hold" object from a momentary button.
+
+All parameters are optional and can be changed at runtime.
+
+Example:
+```lua
+-- Initial configuration
+presshold(Controls.MyMomentaryButton, {
+  Threshold = 2,
+  Press = function() print('Short press!'); end,
+  Hold = function() print('Long press!'); end
+});
+
+-- Dynamic configuration
+MyPressHold = presshold(Controls.MomentaryButton);
+MyPressHold.Threshold = 4;
+MyPressHold.Press = function() print('Press!') end;
+MyPressHold.Hold = function() print('Hold!'); end;
 ```
