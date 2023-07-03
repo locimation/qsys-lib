@@ -120,10 +120,10 @@ function presshold(ctl, options)
       if(k == 'Threshold') then
         if(type(v) ~= 'number') then error('PressHold.Threshold expects a number.'); end;
         options.threshold = v;
-      elseif(k == 'Press') then
+      elseif(k == 'Hold') then
         if(type(v) ~= 'function') then error('PressHold.Hold expects a function.'); end;
         options.Hold = v;
-      elseif(k == 'Hold') then
+      elseif(k == 'Press') then
         if(type(v) ~= 'function') then error('PressHold.Press expects a function.'); end;
         options.Press = v;
       else
