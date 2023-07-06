@@ -23,7 +23,7 @@ function ctls(pattern)
       end;
     end; 
   end
-end; 
+end;  
 
 --[[ Interlock object creator ]]--
 function interlock(pattern, options)
@@ -80,15 +80,23 @@ end;
 function presshold(ctl, options)
   options = options or {};
   if(not options.threshold) then options.threshold = 2; end;
-  if(options.Hold and type(options.Hold) ~= 'function') then error('PressHold.Hold expects a function.'); end;
-  if(options.Press and type(options.Press) ~= 'function') then error('PressHold.Press expects a function.'); end;
+  if(options.Hold) then
+    if(type(options.Hold) ~= 'function') then error('PressHold.Hold expects a function.'); end;
+    _G._locimation_lib_data.PressHold.Hold[ctl] = options.Hold;
+  end;
+  if(options.Press) then
+    if(type(options.Press) ~= 'function') then error('PressHold.Press expects a function.'); end;
+    _G._locimation_lib_data.PressHold.Press[ctl] = options.Press;
+  end;
 
   -- Initialise globals
   if(not _G._locimation_lib_data.PressHold) then
 
     _G._locimation_lib_data.PressHold = {
       Timer = Timer.New(),
-      State = {}
+      State = {},
+      Press = {},
+      Hold = {}
     }
 
     _G._locimation_lib_data.PressHold.Timer.EventHandler = function()
@@ -96,7 +104,9 @@ function presshold(ctl, options)
       for ctl,time in pairs(_G._locimation_lib_data.PressHold.State) do
         if(time and now > time) then
           ctl.Boolean = false;
-          if(options.Hold) then options.Hold(ctl); end;
+          if(_G._locimation_lib_data.PressHold.Hold[ctl]) then
+            _G._locimation_lib_data.PressHold.Hold[ctl](ctl);
+          end;
           _G._locimation_lib_data.PressHold.State[ctl] = nil;
         end;
       end;
@@ -110,22 +120,25 @@ function presshold(ctl, options)
     if(ctl.Boolean) then
       _G._locimation_lib_data.PressHold.State[ctl] = Timer.Now() + options.threshold;
     else
-      if(options.Press) then options.Press(ctl); end;
+      if(_G._locimation_lib_data.PressHold.Press[ctl]) then
+        _G._locimation_lib_data.PressHold.Press[ctl](ctl);
+      end;
       _G._locimation_lib_data.PressHold.State[ctl] = nil; 
     end;
   end;
 
-  return setmetatable({},{
-    __newindex = function(_,k,v)
+  return setmetatable(options, {
+    __index = function() return nil; end,
+    __newindex = function(t,k,v)
       if(k == 'Threshold') then
         if(type(v) ~= 'number') then error('PressHold.Threshold expects a number.'); end;
-        options.threshold = v;
+        rawset(t, 'threshold', v);
       elseif(k == 'Hold') then
         if(type(v) ~= 'function') then error('PressHold.Hold expects a function.'); end;
-        options.Hold = v;
+        _G._locimation_lib_data.PressHold.Hold[ctl] = v;
       elseif(k == 'Press') then
         if(type(v) ~= 'function') then error('PressHold.Press expects a function.'); end;
-        options.Press = v;
+        _G._locimation_lib_data.PressHold.Press[ctl] = v;
       else
         error('Property "' .. k .. '" does not exist on PressHold.');
       end
