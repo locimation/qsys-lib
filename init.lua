@@ -80,14 +80,6 @@ end;
 function presshold(ctl, options)
   options = options or {};
   if(not options.threshold) then options.threshold = 2; end;
-  if(options.Hold) then
-    if(type(options.Hold) ~= 'function') then error('PressHold.Hold expects a function.'); end;
-    _G._locimation_lib_data.PressHold.Hold[ctl] = options.Hold;
-  end;
-  if(options.Press) then
-    if(type(options.Press) ~= 'function') then error('PressHold.Press expects a function.'); end;
-    _G._locimation_lib_data.PressHold.Press[ctl] = options.Press;
-  end;
 
   -- Initialise globals
   if(not _G._locimation_lib_data.PressHold) then
@@ -115,6 +107,16 @@ function presshold(ctl, options)
     _G._locimation_lib_data.PressHold.Timer:Start(0.2);
 
   end
+
+  -- Event Handlers
+  if(options.Hold) then
+    if(type(options.Hold) ~= 'function') then error('PressHold.Hold expects a function.'); end;
+    _G._locimation_lib_data.PressHold.Hold[ctl] = options.Hold;
+  end;
+  if(options.Press) then
+    if(type(options.Press) ~= 'function') then error('PressHold.Press expects a function.'); end;
+    _G._locimation_lib_data.PressHold.Press[ctl] = options.Press;
+  end;
 
   ctl.EventHandler = function()
     if(ctl.Boolean) then
