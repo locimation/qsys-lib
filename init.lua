@@ -149,4 +149,89 @@ function presshold(ctl, options)
 
 end;
 
+--[[ Volume control object creator ]]--
+function volume(ctl, options)
+
+  options = options or {};
+  if(not options.RepeatDelay) then options.RepeatDelay = 0.35; end;
+  if(not options.RepeatInterval) then options.RepeatInterval = 0.1; end;
+  if(not options.Increment) then options.Increment = 0.05; end;
+  if(not options.Min) then options.Min = 0; end;
+  if(not options.Max) then options.Max = 1; end;
+
+  if(options.Prefix and not options.Up) then
+    options.Up = Controls[options.Prefix .. 'Up'];
+  end;
+
+  if(options.Prefix and not options.Down) then
+    options.Down = Controls[options.Prefix .. 'Down'];
+  end;
+
+  if(type(ctl) ~= 'userdata') then
+    error('bad argument #1 to volume (expected control, got ' .. type(options.Up)..')');
+  end;
+
+  for _,option in pairs({'RepeatDelay', 'RepeatInterval', 'Increment', 'Min', 'Max'}) do
+    if(type(options[option]) ~= 'number') then
+      error('Volume.'..option..' expects number, got ' .. type(options[option]));
+    end;
+  end;
+
+  if(options.Up and type(options.Up) ~= 'userdata') then
+    error('Volume.Up expects control, got ' .. type(options.Up));
+  end;
+
+  if(options.Down and type(options.Down) ~= 'userdata') then
+    error('Volume.Down expects control, got ' .. type(options.Down));
+  end;
+
+  if(options.Change and type(options.Change) ~= 'function') then
+    error('Volume.Change expects function, got ' .. type(options.Change));
+  end;
+
+  if(not _G._locimation_lib_data.Volume) then
+    _G._locimation_lib_data.Volume = {};
+  end;
+
+  local function nudge()
+
+    local delta = 0;
+    if(options.Up) then delta = delta + options.Up.Value; end;
+    if(options.Down) then delta = delta - options.Down.Value; end;
+    delta = delta * options.Increment;
+
+    local newPosition = ctl.Position + delta;
+    if(options.Max and newPosition > options.Max) then newPosition = options.Max; end;
+    if(options.Min and newPosition < options.Min) then newPosition = options.Min; end;
+
+    if(ctl.Position ~= newPosition) then
+      ctl.Position = newPosition;
+      if(options.Change) then options.Change(ctl); end;
+    end;
+
+  end;
+
+  _G._locimation_lib_data.Volume[ctl] = Timer.New();
+  _G._locimation_lib_data.Volume[ctl].EventHandler = function()
+    _G._locimation_lib_data.Volume[ctl]:Stop();
+    _G._locimation_lib_data.Volume[ctl]:Start(options.RepeatInterval);
+    nudge();
+  end;
+
+  local function upDownHandler(c)
+    if(c.Boolean) then
+      nudge();
+      _G._locimation_lib_data.Volume[ctl]:Start(options.RepeatDelay);
+    else
+      _G._locimation_lib_data.Volume[ctl]:Stop();
+    end;
+  end;
+
+  if(options.Up) then options.Up.EventHandler = upDownHandler; end;
+  if(options.Down) then options.Down.EventHandler = upDownHandler; end;
+
+  if(options.Change) then options.Change(ctl); end;
+
+end;
+
 _G._locimation_lib_data = {};
