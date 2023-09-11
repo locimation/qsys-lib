@@ -1,10 +1,35 @@
 --[[ Utils ]]--
-function is_in(t,v)
-  for _,val in pairs(t) do
-    if(v == val) then return true; end;
+function find_in(t,v)
+  for k,val in pairs(t) do
+    if(v == val) then return k; end;
   end;
-  return false;
+  return nil;
 end;
+
+function is_in(t,v)
+  return find_in(t,v) ~= nil;
+end;
+
+function deep_copy(orig, copies)
+  copies = copies or {}
+  local orig_type = type(orig)
+  local copy
+  if orig_type == 'table' then
+      if copies[orig] then
+          copy = copies[orig]
+      else
+          copy = {}
+          copies[orig] = copy
+          for orig_key, orig_value in next, orig, nil do
+              copy[deepcopy(orig_key, copies)] = deepcopy(orig_value, copies)
+          end
+          setmetatable(copy, deepcopy(getmetatable(orig), copies))
+      end
+  else -- number, string, boolean, etc
+      copy = orig
+  end
+  return copy
+end
 
 --[[ Pattern-based Controls Iterator ]]--
 function ctls(pattern)
@@ -159,16 +184,18 @@ function volume(ctl, options)
   if(not options.Min) then options.Min = 0; end;
   if(not options.Max) then options.Max = 1; end;
 
-  if(options.Prefix and not options.Up) then
-    options.Up = Controls[options.Prefix .. 'Up'];
+  if((options.Prefix or options.Suffix) and not options.Up) then
+    local name = (options.Prefix or '') .. 'Up' .. (options.Suffix or '');
+    options.Up = Controls[name];
   end;
 
-  if(options.Prefix and not options.Down) then
-    options.Down = Controls[options.Prefix .. 'Down'];
+  if((options.Prefix or options.Suffix) and not options.Down) then
+    local name = (options.Prefix or '') .. 'Down' .. (options.Suffix or '');
+    options.Down = Controls[name];
   end;
 
-  if(type(ctl) ~= 'userdata') then
-    error('bad argument #1 to volume (expected control, got ' .. type(options.Up)..')');
+  if(type(ctl) ~= 'userdata' and type(ctl) ~= 'control') then
+    error('bad argument #1 to volume (expected control or userdata, got ' .. type(ctl)..')');
   end;
 
   for _,option in pairs({'RepeatDelay', 'RepeatInterval', 'Increment', 'Min', 'Max'}) do

@@ -1,5 +1,5 @@
 {
-    "version": "0.2.0",
+    "version": "0.3.0",
     "type": "LuaModule",
     "author": "michael@locimation.com",
     "description": "Lua helper functions by Locimation Pty Ltd",

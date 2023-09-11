@@ -14,6 +14,22 @@ Returns true if the given value exists in the given table. Otherwise, false.
 if(is_in(my_table, 42)) then ... end
 ```
 
+### find_in
+
+Returns the index / key of the given value if it exists in the given table. Otherwise, false.
+
+```lua
+local key = find_in(my_table, 42)
+```
+
+### deep_copy
+
+Creates a deep copy of a table by recursively copying all values, such that changes to either table do not affect the other.
+
+```lua
+local my_copy = deep_copy(existing_table)
+```
+
 ## Controls API Helpers
 
 ### ctls
