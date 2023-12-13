@@ -97,6 +97,7 @@ function clock(ctl, format)
   _G._locimation_lib_data.ClockTimer[ctl] = Timer.New();
   _G._locimation_lib_data.ClockTimer[ctl].EventHandler = function()
     ctl.String = os.date(format);
+    if(ctl.Legend) then ctl.Legend = os.date(format); end;
   end;
   _G._locimation_lib_data.ClockTimer[ctl]:Start(0.2);
 end;
