@@ -101,8 +101,25 @@ Turns a given control into a clock display with given format.
 
 Example:
 ```lua
-clock(Controls.MyClock, '%H:%I %p');
+clock(Controls.MyClock, '%H:%M %p');
 ```
+
+## init
+
+Allows code execution to be delayed until the end of the script, whilst allowing behaviour to remain in context.
+
+To register a function to be called later:
+```lua
+init(function()
+  print('This will be printed later')
+end);
+```
+
+Then at the end of the script, run all the functions fed to `init()` by calling `init()` with no parameters.
+```lua
+init() 
+```
+
 
 ## presshold
 

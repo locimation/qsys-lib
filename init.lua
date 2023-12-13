@@ -174,6 +174,21 @@ function presshold(ctl, options)
 
 end;
 
+--[[ Initialisation helper ]]--
+function init(fn)
+  _G._locimation_lib_data.init_functions
+    = _G._locimation_lib_data.init_functions or {};
+  
+  if(fn) then
+    table.insert(_G._locimation_lib_data.init_functions, fn);
+  else
+    for _,fn in ipairs(_G._locimation_lib_data.init_functions) do
+      fn();
+    end
+  end;
+
+end;
+
 --[[ Volume control object creator ]]--
 function volume(ctl, options)
 
