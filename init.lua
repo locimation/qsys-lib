@@ -62,20 +62,29 @@ function interlock(pattern, options)
     for c,v,fn in ctls(pattern) do
       c.Boolean = (current_value == v);
     end;
-    if(options.callback and not prevent_cb) then options.callback(current_value); end;
+    if(options.callback and not prevent_cb) then
+      options.callback(current_value);
+    end;
   end;
 
-  local function reset()
-    if(options.default) then set(options.default, options.no_startup); end;
+  local function reset(prevent_cb)
+    if(options.default) then set(options.default, prevent_cb); end;
     for ctl, value in ctls(pattern) do
       if(not current_value) then
-        set(value, options.no_startup);
+        set(value, prevent_cb);
       end;
       ctl.EventHandler = function()
         set(value);
       end;
     end;
-  end; reset();
+  end;
+  
+  reset(true); -- prevent auto callback
+  if(options.delayed_init_callback) then
+    init(function() options.callback(current_value) end);
+  elseif(not options.no_startup) then
+    options.callback(current_value);
+  end;
 
   return setmetatable({},{
     __index = {

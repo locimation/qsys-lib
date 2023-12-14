@@ -120,6 +120,14 @@ Then at the end of the script, run all the functions fed to `init()` by calling 
 init() 
 ```
 
+The `interlock()` object also supports its callback's first run being via init():
+```lua
+interlock('^MyButtons_(%d)$', {
+  callback = print,
+  delayed_init_callback = true
+})
+```
+
 
 ## presshold
 
