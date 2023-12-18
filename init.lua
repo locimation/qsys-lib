@@ -84,11 +84,11 @@ function interlock(pattern, options)
     init(function() options.callback(current_value) end);
   elseif(not options.no_startup) then
     options.callback(current_value);
-  end;
+  end; 
 
   return setmetatable({},{
     __index = {
-      set = function(v) set(v, true); end,
+      set = function(v) set(v); end,
       reset = reset
     },
     __call = function()
