@@ -50,6 +50,16 @@ function ctls(pattern)
   end
 end;  
 
+--[[ Selector setter ]]--
+function set_selector(control, text)
+  for _, json_string in ipairs(control.Choices) do
+    local ok, data = pcall(require('json').decode, json_string);
+    if(ok and data.Text == text) then
+      control.String = json_string;
+    end;
+  end;
+end;
+
 --[[ Interlock object creator ]]--
 function interlock(pattern, options)
 

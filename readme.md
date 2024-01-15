@@ -150,3 +150,21 @@ MyPressHold.Threshold = 4;
 MyPressHold.Press = function() print('Press!') end;
 MyPressHold.Hold = function() print('Hold!'); end;
 ```
+
+
+## set_selector
+
+Q-SYS "Selector" components cannot be set directly to a text value in the usual form:
+```lua
+Component.New('My Selector').selector.String = "Selection 1";
+```
+because the "selector" control has embedded JSON data that enables the selector component to function.
+
+This library provides a helper function to set the value of a selector control to a specified text value (by searching through the list of label texts) as follows:
+
+```lua
+set_selector(
+  Component.New('My Selector').selector,
+  "Selection 1"
+);
+```
