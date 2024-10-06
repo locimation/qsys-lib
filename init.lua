@@ -222,11 +222,13 @@ function volume(ctl, options)
   if((options.Prefix or options.Suffix) and not options.Up) then
     local name = (options.Prefix or '') .. 'Up' .. (options.Suffix or '');
     options.Up = Controls[name];
+    if(not options.Up) then error('Missing volume up control: ' .. name); end;
   end;
 
   if((options.Prefix or options.Suffix) and not options.Down) then
     local name = (options.Prefix or '') .. 'Down' .. (options.Suffix or '');
     options.Down = Controls[name];
+    if(not options.Down) then error('Missing volume down control: ' .. name); end;
   end;
 
   if(type(ctl) ~= 'userdata' and type(ctl) ~= 'control') then
@@ -289,11 +291,22 @@ function volume(ctl, options)
     end;
   end;
 
-  if(options.Up) then options.Up.EventHandler = upDownHandler; end;
-  if(options.Down) then options.Down.EventHandler = upDownHandler; end;
+  options.Up.EventHandler = upDownHandler;
+  options.Down.EventHandler = upDownHandler;
 
+  if(options.Change) then
+    ctl.EventHandler = options.Change;
+    options.Change(ctl);
+  end;
+
+  return {
+    set = function(position)
+      ctl.Position = position;
   if(options.Change) then options.Change(ctl); end;
+    end;
+  }
 
+end;
 end;
 
 _G._locimation_lib_data = {};
