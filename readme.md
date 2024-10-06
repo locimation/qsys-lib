@@ -168,3 +168,16 @@ set_selector(
   "Selection 1"
 );
 ```
+
+## fn()
+
+A helper function to create a function that calls another function with predefined arguments.
+
+Example:
+```lua
+function my_function(a, b, c)
+  print(a, b, c)
+end
+
+Controls.MyButton.EventHandler = fn(my_function, 1, 2, 3)
+```

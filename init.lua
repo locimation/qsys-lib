@@ -1,3 +1,4 @@
+---@diagnostic disable: lowercase-global
 --[[ Utils ]]--
 function find_in(t,v)
   for k,val in pairs(t) do
@@ -302,11 +303,18 @@ function volume(ctl, options)
   return {
     set = function(position)
       ctl.Position = position;
-  if(options.Change) then options.Change(ctl); end;
+      if(options.Change) then options.Change(ctl); end;
     end;
   }
 
 end;
+
+-- [[ fn() helper ]] --
+function fn(fn, ...)
+  local args = {...};
+  return function()
+    fn(table.unpack(args));
+  end;
 end;
 
 _G._locimation_lib_data = {};
