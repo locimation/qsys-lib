@@ -328,6 +328,7 @@ function link(ctl_a, ctl_b, method)
   ctl_b.EventHandler = function()
     ctl_a[method] = ctl_b[method];
   end;
+  ctl_a[method] = ctl_b[method];
 end;
 
 _G._locimation_lib_data = {};
