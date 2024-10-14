@@ -186,6 +186,8 @@ Controls.MyButton.EventHandler = fn(my_function, 1, 2, 3)
 
 Links the value of `control_a` to `control_b`. If `optional_property` is provided, it will be used as the property to link.
 
+Note that control_a will get set to the state of control_b at the time of linking.
+
 Example:
 ```lua
 link(Controls.MySlider, Controls.MyGauge) -- links via String by default
