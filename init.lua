@@ -317,4 +317,17 @@ function fn(fn, ...)
   end;
 end;
 
+-- [[ link creator ]] --
+function link(ctl_a, ctl_b, method)
+  if method == nil then method = 'String'; end;
+  if not ctl_a then error('link: invalid argument in position 1, expected control but got nil'); end;
+  if not ctl_b then error('link: invalid argument in position 2, expected control but got nil'); end;
+  ctl_a.EventHandler = function()
+    ctl_b[method] = ctl_a[method];
+  end;
+  ctl_b.EventHandler = function()
+    ctl_a[method] = ctl_b[method];
+  end;
+end;
+
 _G._locimation_lib_data = {};

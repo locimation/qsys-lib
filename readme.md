@@ -181,3 +181,15 @@ end
 
 Controls.MyButton.EventHandler = fn(my_function, 1, 2, 3)
 ```
+
+## link(control_a, control_b, optional_property)
+
+Links the value of `control_a` to `control_b`. If `optional_property` is provided, it will be used as the property to link.
+
+Example:
+```lua
+link(Controls.MySlider, Controls.MyGauge) -- links via String by default
+link(Controls.MySlider, Controls.MyGauge, 'Value') -- links via Value (numeric)
+link(Controls.MySlider, Controls.MyGauge, 'Boolean') -- links via Boolean
+link(Controls.MySlider, Controls.MyGauge, 'Position') -- links via Position
+```
