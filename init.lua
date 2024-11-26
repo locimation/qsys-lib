@@ -215,6 +215,8 @@ end;
 --[[ Volume control object creator ]]--
 function volume(ctl, options)
 
+  local is_k = false;
+
   options = options or {};
   if(not options.RepeatDelay) then options.RepeatDelay = 0.35; end;
   if(not options.RepeatInterval) then options.RepeatInterval = 0.1; end;
@@ -235,7 +237,11 @@ function volume(ctl, options)
   end;
 
   if(type(ctl) ~= 'userdata' and type(ctl) ~= 'control') then
+    if K and type(ctl) == 'string' then
+      is_k = true;
+    else
     error('bad argument #1 to volume (expected control or userdata, got ' .. type(ctl)..')');
+    end;
   end;
 
   for _,option in pairs({'RepeatDelay', 'RepeatInterval', 'Increment', 'Min', 'Max'}) do
@@ -267,13 +273,32 @@ function volume(ctl, options)
     if(options.Down) then delta = delta - options.Down.Value; end;
     delta = delta * options.Increment;
 
-    local newPosition = ctl.Position + delta;
+    local oldPosition;
+    if is_k then
+      oldPosition = K.get(ctl);
+      if type(oldPosition) == 'nil' then
+        oldPosition = 0.5;
+      end
+    else
+      oldPosition = ctl.Position;
+    end
+    local newPosition = oldPosition + delta;
     if(options.Max and newPosition > options.Max) then newPosition = options.Max; end;
     if(options.Min and newPosition < options.Min) then newPosition = options.Min; end;
 
-    if(ctl.Position ~= newPosition) then
+    if(oldPosition ~= newPosition) then
+      if is_k then
+        K.set(ctl, newPosition);
+      else
       ctl.Position = newPosition;
-      if(options.Change) then options.Change(ctl); end;
+      end;
+      if(options.Change) then
+        if is_k then
+          options.Change(newPosition);
+        else
+          options.Change(ctl);
+        end;
+      end;
     end;
 
   end;
@@ -298,14 +323,32 @@ function volume(ctl, options)
   options.Down.EventHandler = upDownHandler;
 
   if(options.Change) then
+    if is_k then
+      K.on(ctl, options.Change);
+    else
     ctl.EventHandler = options.Change;
+    end
+    if is_k then
+      options.Change(K.get(ctl));
+    else
     options.Change(ctl);
+    end
   end;
 
   return {
     set = function(position)
+      if is_k then
+        K.set(ctl, position);
+      else
       ctl.Position = position;
-      if(options.Change) then options.Change(ctl); end;
+      end;
+      if(options.Change) then
+        if is_k then
+          options.Change(K.get(ctl));
+        else
+          options.Change(ctl);
+        end
+      end;
     end;
   }
 
