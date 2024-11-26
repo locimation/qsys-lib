@@ -240,7 +240,7 @@ function volume(ctl, options)
     if K and type(ctl) == 'string' then
       is_k = true;
     else
-    error('bad argument #1 to volume (expected control or userdata, got ' .. type(ctl)..')');
+      error('bad argument #1 to volume (expected control or userdata, got ' .. type(ctl)..')');
     end;
   end;
 
@@ -290,7 +290,7 @@ function volume(ctl, options)
       if is_k then
         K.set(ctl, newPosition);
       else
-      ctl.Position = newPosition;
+        ctl.Position = newPosition;
       end;
       if(options.Change) then
         if is_k then
@@ -326,12 +326,12 @@ function volume(ctl, options)
     if is_k then
       K.on(ctl, options.Change);
     else
-    ctl.EventHandler = options.Change;
+      ctl.EventHandler = options.Change;
     end
     if is_k then
       options.Change(K.get(ctl));
     else
-    options.Change(ctl);
+      options.Change(ctl);
     end
   end;
 
@@ -340,7 +340,7 @@ function volume(ctl, options)
       if is_k then
         K.set(ctl, position);
       else
-      ctl.Position = position;
+        ctl.Position = position;
       end;
       if(options.Change) then
         if is_k then
@@ -374,6 +374,141 @@ function link(ctl_a, ctl_b, method)
     ctl_a[method] = ctl_b[method];
   end;
   ctl_a[method] = ctl_b[method];
+end;
+
+-- [[ navigator ]] --
+function navigator(page_name, layers)
+
+  local current_page;
+
+  local history = {};
+  local history_reset_point;
+
+  local transitions = {};
+
+  local hooks = {};
+  local function hook(fn)
+    table.insert(hooks, fn);
+  end;
+
+  local warn = true;
+  local function layer(layer_name, state, transition)
+    if not transition then
+      transition = transitions[layer_name];
+    end;
+    local ok = pcall(Uci.SetLayerVisibility, page_name, layer_name, state, transition);
+    if warn and not ok then
+      print('WARNING: Layer "' .. layer_name .. '" not found by navigator.');
+    end;
+  end;
+
+  local function go(page)
+
+    -- Store current page
+    current_page = page;
+    
+    -- Update history
+    if(history_reset_point) then
+      table.insert(history, page);
+    end;
+
+    -- Show / hide known layers
+    for _, layer_name in ipairs(layers) do
+      layer(layer_name, layer_name == page);
+    end;
+
+    -- Execute hooks
+    for _,hook in ipairs(hooks) do
+      hook(page);
+    end;
+
+  end;
+
+  -- Dependent layers
+  local dependencies = {};
+  hook(function(page)
+    for layer_name, parent_layers in pairs(dependencies) do
+      layer(layer_name, is_in(parent_layers, page));
+    end;
+  end);
+
+  local function back()
+    if not history_reset_point then
+      error('History reset point not set. Use navigator.history_from(\'Home\') to init, for example.');
+    end;
+    if(#history > 0) then
+      table.remove(history); -- remove current page
+      local page = table.remove(history);
+      go(page);
+    end;    
+  end;
+
+  return {
+    go = go,
+    goFn = function(page) return fn(go, page); end,
+    back = back,
+    history_from = function(page)
+      history_reset_point = page;
+    end,
+    transition = function(layer_name, transition)
+      transitions[layer_name] = transition;
+    end,
+    depend = function(layer_name, parent_layers)
+      dependencies[layer_name] = parent_layers;
+    end,
+    layer = layer,
+    warn = function(w) warn = w; end,
+    hook = hook,
+    on = function(page, fn)
+      hook(function(p)
+        if(p == page) then
+          fn();
+        end;
+      end);
+    end,
+    get = function() return current_page; end
+  }
+
+end;
+
+-- [[ popupper ]] --
+function popupper(page_name, popup_layers)
+
+  local navigator = navigator(page_name, popup_layers);
+  navigator.go(''); -- hide all, allowing warnings for missing popup layers
+  navigator.warn(false); -- disable warnings
+ 
+  local function popup(layer_name)
+    if not is_in(popup_layers, layer_name) then
+      error('Popup "' .. layer_name .. '" not found in popupper.');
+    end;
+    navigator.go(layer_name);
+  end;
+
+  local function close()
+    navigator.go(''); -- hide all
+  end;
+
+  return {
+    popup = popup,
+    popupFn = function(layer_name) popup(layer_name); end,
+    close = close,
+    toggleFn = function(layer_name)
+      return function(c)
+        if(c.Boolean) then
+          popup(layer_name);
+        else
+          close();
+        end;
+      end;
+    end,
+    hook = navigator.hook,
+    on = navigator.on,
+    layer = navigator.layer,
+    depend = navigator.depend,
+    get = navigator.get
+  }
+
 end;
 
 _G._locimation_lib_data = {};
