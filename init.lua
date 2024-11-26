@@ -110,14 +110,16 @@ function interlock(pattern, options)
 end; 
 
 --[[ Clock object creator]]--
-function clock(ctl, format)
+function clock(ctl, format, trim)
   if(not _G._locimation_lib_data.ClockTimer) then
     _G._locimation_lib_data.ClockTimer = {};
   end
   _G._locimation_lib_data.ClockTimer[ctl] = Timer.New();
   _G._locimation_lib_data.ClockTimer[ctl].EventHandler = function()
-    ctl.String = os.date(format);
-    if(ctl.Legend) then ctl.Legend = os.date(format); end;
+    local time = os.date(format);
+    if(trim) then time = time:gsub('^0',''); end;
+    ctl.String = time;
+    if(ctl.Legend) then ctl.Legend = time; end;
   end;
   _G._locimation_lib_data.ClockTimer[ctl]:Start(0.2);
 end;

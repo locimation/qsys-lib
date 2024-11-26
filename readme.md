@@ -104,6 +104,11 @@ Example:
 clock(Controls.MyClock, '%H:%M %p');
 ```
 
+Optional third parameter to remove leading zeros from the hour:
+```lua
+clock(Controls.MyClock, '%H:%M %p', true);
+```
+
 ## init
 
 Allows code execution to be delayed until the end of the script, whilst allowing behaviour to remain in context.
