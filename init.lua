@@ -45,7 +45,7 @@ function ctls(pattern)
       end;
     end; 
   end
-end;  
+end;
 
 --[[ Controls table constructor ]]--
 Ctls = {};
@@ -84,15 +84,23 @@ function set_selector(control, text)
 end;
 
 --[[ Interlock object creator ]]--
-function interlock(pattern, options)
+function interlock(pattern_or_table, options)
 
   if(not options) then options = {}; end;
 
   local current_value;
   local controls = {};
 
-  for ctl, value in ctls(pattern) do
-    controls[ctl] = value;
+  if type(pattern_or_table) == 'string' then
+    for ctl, value in ctls(pattern_or_table) do
+      controls[ctl] = value;
+    end
+  elseif type(pattern_or_table) == 'table' then
+    for value, ctl in pairs(pattern_or_table) do
+      controls[ctl] = value;
+    end
+  else
+    error('Interlock expects a string or table as first argument, got ' .. type(pattern_or_table));
   end
 
   local function set(value, prevent_cb)

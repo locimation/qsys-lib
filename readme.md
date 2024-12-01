@@ -101,7 +101,13 @@ Creates an `Interlock` object based on a control pattern:
 MyInterlock = interlock('^Control%-(%d+)$')
 ```
 
-with optional configuration:
+or, using the `Ctls` table:
+
+```lua
+MyInterlock = interlock(Ctls.Sources)
+```
+
+either of which can have optional configuration:
 
 ```lua
 MyInterlock = interlock('^Control%-(%d+)$', {
