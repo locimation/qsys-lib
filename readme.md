@@ -130,6 +130,9 @@ print('Current value is: ' .. MyInterlock())
 -- Set the current value of the interlock
 MyInterlock.set('2');
 
+-- or, without triggering the callback
+MyInterlock.set('2', true);
+
 -- Reset the interlock to its default value
 MyInterlock.reset();
 ```

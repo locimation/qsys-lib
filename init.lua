@@ -137,7 +137,7 @@ function interlock(pattern_or_table, options)
 
   return setmetatable({},{
     __index = {
-      set = function(v) set(v); end,
+      set = set,
       reset = reset
     },
     __call = function()
