@@ -131,7 +131,7 @@ function interlock(pattern_or_table, options)
   reset(true); -- prevent auto callback
   if(options.delayed_init_callback) then
     init(function() options.callback(current_value) end);
-  elseif(not options.no_startup) then
+  elseif(options.callback and not options.no_startup) then
     options.callback(current_value);
   end; 
 
