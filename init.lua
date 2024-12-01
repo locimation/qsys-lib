@@ -35,17 +35,13 @@ end
 --[[ Pattern-based Controls Iterator ]]--
 function ctls(pattern)
   local k,v;
-  return function(t)
-    local function tnext()
-      k,v = next(Controls,k)
-      return k,v;
-    end;
-    for k,v in tnext do
+  return function()
+    while true do
+      k,v = next(Controls,k);
+      if(not k) then return nil; end;
       local match = {k:match(pattern)}
       if(#match > 0) then
-        table.insert(match, 1, v);
-        table.insert(match, k);
-        return table.unpack(match);
+        return v, table.unpack(match), k;
       end;
     end; 
   end
@@ -67,10 +63,15 @@ function interlock(pattern, options)
   if(not options) then options = {}; end;
 
   local current_value;
+  local controls = {};
+
+  for ctl, value in ctls(pattern) do
+    controls[ctl] = value;
+  end
 
   local function set(value, prevent_cb)
     current_value = value;
-    for c,v,fn in ctls(pattern) do
+    for c,v in pairs(controls) do
       c.Boolean = (current_value == v);
     end;
     if(options.callback and not prevent_cb) then
@@ -79,16 +80,19 @@ function interlock(pattern, options)
   end;
 
   local function reset(prevent_cb)
-    if(options.default) then set(options.default, prevent_cb); end;
-    for ctl, value in ctls(pattern) do
-      if(not current_value) then
-        set(value, prevent_cb);
-      end;
-      ctl.EventHandler = function()
-        set(value);
-      end;
+    if(options.default) then
+      set(options.default, prevent_cb);
+    else
+      local _, value = next(controls, nil);
+      set(value, prevent_cb);
     end;
   end;
+
+  for ctl, value in pairs(controls) do
+    ctl.EventHandler = function()
+      set(value);
+    end;
+  end
   
   reset(true); -- prevent auto callback
   if(options.delayed_init_callback) then
