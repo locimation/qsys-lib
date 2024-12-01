@@ -420,6 +420,7 @@ function navigator(page_name, layers)
   local current_page;
 
   local history = {};
+  local history_skip = {};
   local history_reset_point;
 
   local transitions = {};
@@ -477,6 +478,9 @@ function navigator(page_name, layers)
     if(#history > 0) then
       table.remove(history); -- remove current page
       local page = table.remove(history);
+      while is_in(history_skip, page) do
+        page = table.remove(history);
+      end;
       go(page);
     end;    
   end;
@@ -487,6 +491,9 @@ function navigator(page_name, layers)
     back = back,
     history_from = function(page)
       history_reset_point = page;
+    end,
+    history_skip = function(page)
+      table.insert(history_skip, page);
     end,
     transition = function(layer_name, transition)
       transitions[layer_name] = transition;
