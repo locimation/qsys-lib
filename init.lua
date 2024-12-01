@@ -47,6 +47,32 @@ function ctls(pattern)
   end
 end;  
 
+--[[ Controls table constructor ]]--
+Ctls = {};
+for k, ctl in pairs(Controls) do
+  local parts = {};
+  for part in k:gmatch('([^_]+)') do
+    table.insert(parts, part);
+  end;
+  local current = Ctls;
+  for i, part in ipairs(parts) do
+    if type(current) ~= 'table' then
+      local parts_so_far = table.concat(parts, '_', 1, i-1);
+      error('Cannot add control "' .. k .. '" to non-table "' .. parts_so_far .. '".');
+    end;
+    if(i == #parts) then
+      -- Convert numbers to integers
+      if(tonumber(part)) then
+        part = tonumber(part);
+      end;
+      current[part] = ctl;
+    else
+      current[part] = current[part] or {};
+      current = current[part];
+    end;
+  end;
+end;
+
 --[[ Selector setter ]]--
 function set_selector(control, text)
   for _, json_string in ipairs(control.Choices) do

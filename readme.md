@@ -60,6 +60,39 @@ for ctl, input, output in ctls('^In(%d+)%-Out(%d+)$') do
 end;
 ```
 
+Note that calling ctls() can become expensive in UCI's with a large number of controls, in which case it is recommended to cache the results, or to use the `Ctls` table.
+
+## Ctls
+
+The `Ctls` table is a nested table of controls, organised by parts of the control name separated by underscores.
+
+For example, given the following controls:
+
+- `Control_1`
+- `Control_2`
+- `Control_3`
+- `Button_One`
+- `Button_Two`
+
+The `Ctls` table would look like this:
+
+```lua
+{
+  Control = {
+    Controls.Control_1,
+    Controls.Control_2,
+    Controls.Control_3
+  },
+  Button = {
+    One = Controls.Button_One,
+    Two = Controls.Button_Two
+  }
+}
+
+```
+
+(Note that numeric keys are automatically converted from strings to numbers.)
+
 ## interlock
 
 Creates an `Interlock` object based on a control pattern:
