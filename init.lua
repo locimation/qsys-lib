@@ -48,7 +48,8 @@ function ctls(pattern)
 end;
 
 --[[ Controls table constructor ]]--
-Ctls = {};
+Ctls = function()
+  _G.Ctls = {};
 for k, ctl in pairs(Controls) do
   local parts = {};
   for part in k:gmatch('([^_]+)') do
@@ -71,6 +72,7 @@ for k, ctl in pairs(Controls) do
       current = current[part];
     end;
   end;
+end;
 end;
 
 --[[ Selector setter ]]--
