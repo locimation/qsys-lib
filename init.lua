@@ -50,29 +50,29 @@ end;
 --[[ Controls table constructor ]]--
 Ctls = function()
   _G.Ctls = {};
-for k, ctl in pairs(Controls) do
-  local parts = {};
-  for part in k:gmatch('([^_]+)') do
-    table.insert(parts, part);
-  end;
-  local current = Ctls;
-  for i, part in ipairs(parts) do
-    if type(current) ~= 'table' then
-      local parts_so_far = table.concat(parts, '_', 1, i-1);
-      error('Cannot add control "' .. k .. '" to non-table "' .. parts_so_far .. '".');
+  for k, ctl in pairs(Controls) do
+    local parts = {};
+    for part in k:gmatch('([^_]+)') do
+      table.insert(parts, part);
     end;
-    if(i == #parts) then
-      -- Convert numbers to integers
-      if(tonumber(part)) then
-        part = tonumber(part);
+    local current = Ctls;
+    for i, part in ipairs(parts) do
+      if type(current) ~= 'table' then
+        local parts_so_far = table.concat(parts, '_', 1, i-1);
+        error('Cannot add control "' .. k .. '" to non-table "' .. parts_so_far .. '".');
       end;
-      current[part] = ctl;
-    else
-      current[part] = current[part] or {};
-      current = current[part];
+      if(i == #parts) then
+        -- Convert numbers to integers
+        if(tonumber(part)) then
+          part = tonumber(part);
+        end;
+        current[part] = ctl;
+      else
+        current[part] = current[part] or {};
+        current = current[part];
+      end;
     end;
   end;
-end;
 end;
 
 --[[ Selector setter ]]--
@@ -403,17 +403,25 @@ function fn(fn, ...)
 end;
 
 -- [[ link creator ]] --
-function link(ctl_a, ctl_b, method)
-  if method == nil then method = 'String'; end;
-  if not ctl_a then error('link: invalid argument in position 1, expected control but got nil'); end;
-  if not ctl_b then error('link: invalid argument in position 2, expected control but got nil'); end;
-  ctl_a.EventHandler = function()
-    ctl_b[method] = ctl_a[method];
+function link(...)
+  local args = {...};
+  local method;
+  if type(args[#args]) == 'string' then
+    method = table.remove(args);
+  else
+    method = 'String';
   end;
-  ctl_b.EventHandler = function()
-    ctl_a[method] = ctl_b[method];
+  local function update_from(c)
+    for _, ctl in ipairs(args) do
+      if c ~= ctl then
+        ctl[method] = c[method];
+      end;
+    end;
   end;
-  ctl_a[method] = ctl_b[method];
+  for _,c in ipairs(args) do
+    c.EventHandler = update_from;
+  end;
+  update_from(args[1]);
 end;
 
 -- [[ navigator ]] --
