@@ -167,7 +167,8 @@ end;
 --[[ Press + Hold object creator ]]
 function presshold(ctl, options)
   options = options or {};
-  if(not options.threshold) then options.threshold = 2; end;
+  if options.Threshold then options.threshold = options.Threshold; end;
+  if not options.threshold then options.threshold = 2; end;
 
   -- Initialise globals
   if(not _G._locimation_lib_data.PressHold) then
