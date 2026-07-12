@@ -39,9 +39,11 @@ function ctls(pattern)
     while true do
       k,v = next(Controls,k);
       if(not k) then return nil; end;
-      local match = {k:match(pattern)}
-      if(#match > 0) then
-        return v, table.unpack(match), k;
+      local matches = {k:match(pattern)}
+      if(#matches > 0) then
+        table.insert(matches, 1, v);
+        table.insert(matches, k);
+        return table.unpack(matches);
       end;
     end; 
   end
@@ -257,6 +259,7 @@ end;
 function volume(ctl, options)
 
   local is_k = false;
+  local is_fn = false;
 
   options = options or {};
   if(not options.RepeatDelay) then options.RepeatDelay = 0.35; end;
@@ -280,6 +283,8 @@ function volume(ctl, options)
   if(type(ctl) ~= 'userdata' and type(ctl) ~= 'control') then
     if K and type(ctl) == 'string' then
       is_k = true;
+    elseif type(ctl) == 'function' then
+      is_fn = true;
     else
       error('bad argument #1 to volume (expected control or userdata, got ' .. type(ctl)..')');
     end;
@@ -320,6 +325,8 @@ function volume(ctl, options)
       if type(oldPosition) == 'nil' then
         oldPosition = 0.5;
       end
+    elseif is_fn then
+      oldPosition = ctl().Position;
     else
       oldPosition = ctl.Position;
     end
@@ -330,12 +337,16 @@ function volume(ctl, options)
     if(oldPosition ~= newPosition) then
       if is_k then
         K.set(ctl, newPosition);
+      elseif is_fn then
+        ctl().Position = newPosition;
       else
         ctl.Position = newPosition;
       end;
       if(options.Change) then
         if is_k then
           options.Change(newPosition);
+        elseif is_fn then
+          options.Change(ctl());
         else
           options.Change(ctl);
         end;
@@ -366,11 +377,13 @@ function volume(ctl, options)
   if(options.Change) then
     if is_k then
       K.on(ctl, options.Change);
-    else
+    elseif not is_fn then
       ctl.EventHandler = options.Change;
     end
     if is_k then
       options.Change(K.get(ctl));
+    elseif is_fn then
+      options.Change(ctl());
     else
       options.Change(ctl);
     end
@@ -380,17 +393,32 @@ function volume(ctl, options)
     set = function(position)
       if is_k then
         K.set(ctl, position);
+      elseif is_fn then
+        ctl().Position = position;
       else
         ctl.Position = position;
       end;
       if(options.Change) then
         if is_k then
           options.Change(K.get(ctl));
+        elseif is_fn then
+          options.Change(ctl());
         else
           options.Change(ctl);
         end
       end;
-    end;
+    end,
+    update = function()
+      if(options.Change) then
+        if is_k then
+          options.Change(K.get(ctl));
+        elseif is_fn then
+          options.Change(ctl());
+        else
+          options.Change(ctl);
+        end
+      end;
+    end
   }
 
 end;
@@ -412,17 +440,38 @@ function link(...)
   else
     method = 'String';
   end;
+  local proxy, user_handler;
   local function update_from(c)
     for _, ctl in ipairs(args) do
       if c ~= ctl then
         ctl[method] = c[method];
       end;
     end;
+    if user_handler then
+      user_handler(proxy);
+    end;
   end;
   for _,c in ipairs(args) do
     c.EventHandler = update_from;
   end;
   update_from(args[1]);
+  proxy = setmetatable({}, {
+    __index = function(_, key)
+      return args[1][key];
+    end,
+    __newindex = function(_, key, value)
+      if key == 'EventHandler' then
+        -- controls' own handlers keep the link in sync;
+        -- the user's handler is called after each sync instead
+        user_handler = value;
+      else
+        for _, ctl in ipairs(args) do
+          ctl[key] = value;
+        end;
+      end;
+    end
+  });
+  return proxy;
 end;
 
 -- [[ navigator ]] --
@@ -547,7 +596,7 @@ function popupper(page_name, popup_layers)
 
   return {
     popup = popup,
-    popupFn = function(layer_name) popup(layer_name); end,
+    popupFn = function(layer_name) return fn(popup, layer_name); end,
     close = close,
     toggleFn = function(layer_name)
       return function(c)
